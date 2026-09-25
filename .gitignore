@@ -1,0 +1,9 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+work/
+output/
+!work/.gitkeep
+!output/.gitkeep
+implementation_plan.md

@@ -1,0 +1,4 @@
+pymupdf>=1.24
+openai>=1.0
+# MinerU cài riêng (nặng, kéo theo torch + mô hình) — xem README.md mục Cài đặt:
+#   pip install mineru

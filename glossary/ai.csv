@@ -1,0 +1,29 @@
+source,target,note
+fine-tuning,tinh chỉnh (fine-tuning),
+hallucination,ảo giác,
+inference,suy luận,trong ngữ cảnh chạy mô hình
+training,huấn luyện,
+pretraining,tiền huấn luyện,
+gradient descent,hạ gradient,
+backpropagation,lan truyền ngược,
+overfitting,quá khớp,
+underfitting,dưới khớp,
+regularization,điều chuẩn,không nhầm với normalization (chuẩn hóa dữ liệu)
+normalization,chuẩn hóa,về dữ liệu hoặc layer normalization
+attention mechanism,cơ chế chú ý,
+large language model,mô hình ngôn ngữ lớn,
+neural network,mạng nơ-ron,
+loss function,hàm mất mát,
+benchmark,bộ đánh giá (benchmark),
+dataset,tập dữ liệu,
+reinforcement learning,học tăng cường,
+RLHF,học tăng cường từ phản hồi của con người (RLHF),
+multimodal,đa phương thức,
+hyperparameter,siêu tham số,
+batch size,kích thước batch,
+learning rate,tốc độ học,
+transformer,transformer,giữ nguyên tiếng Anh
+embedding,embedding,giữ nguyên tiếng Anh
+token,token,giữ nguyên tiếng Anh
+prompt,prompt,giữ nguyên tiếng Anh
+retrieval-augmented generation,retrieval-augmented generation (RAG),giữ nguyên tiếng Anh
