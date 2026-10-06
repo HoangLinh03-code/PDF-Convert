@@ -16,13 +16,13 @@ born_digital_ratio_threshold = 0.1
 # Remote service: basic/standard/advanced (requires --remote + mineru.net account)
 backend_born_digital = "pipeline"
 backend_scanned = "pipeline"
-backend_fallback = ""        # e.g. "standard" for remote higher-quality parse
+backend_fallback = "standard"        # e.g. "standard" for remote higher-quality parse
 extra_args = ""
 
 [llm]
 # Google Gemini — see https://ai.google.dev/gemini-api/docs/models
 # Available models: gemini-2.0-flash, gemini-2.5-flash, gemini-2.5-pro, ...
-model = "gemini-3.5-flash-lite"
+model = "gemini-3.7-flash"
 temperature = 0.1
 qps = 4
 max_retries = 3

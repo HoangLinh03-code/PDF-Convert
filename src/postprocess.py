@@ -11,7 +11,18 @@ from pathlib import Path
 from preprocess import restore
 
 logger = logging.getLogger(__name__)
+import re, urllib.parse
+IMG_RE = re.compile(r"!\[([^\]]*)\]\(([^)\s]+)(?:\s+[\"'][^\"']*[\"'])?\)")
 
+def normalize_images(md: str) -> str:
+    def repl(m: re.Match) -> str:
+        alt, url = m.group(1), m.group(2)
+        if url.startswith(("http://", "https://", "data:")):
+            return m.group(0)
+        name = Path(urllib.parse.unquote(url)).name          # flatten to basename
+        rel = "images/" + urllib.parse.quote(name)           # encode spaces etc.
+        return f"![{alt}]({rel})"
+    return IMG_RE.sub(repl, md)
 
 def _read_jsonl(path: Path) -> list[dict]:
     return [
@@ -36,7 +47,7 @@ def run(work_dir: str | Path, output_dir: str | Path, cfg: dict) -> Path:
         rec = translations[chunk["id"]]
         src_restored = restore(chunk["text"], mapping)
         tgt_restored = restore(rec["translation"], mapping)
-        translated_parts.append(tgt_restored)
+        translated_parts.append(normalize_images(tgt_restored))
         bilingual_parts.append(
             f"<!-- {chunk['id']} -->\n\n{src_restored}\n\n{tgt_restored}"
         )
