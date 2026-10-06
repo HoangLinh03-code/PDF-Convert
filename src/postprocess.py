@@ -17,8 +17,8 @@ IMG_RE = re.compile(r"!\[([^\]]*)\]\(([^)\s]+)(?:\s+[\"'][^\"']*[\"'])?\)")
 def normalize_images(md: str) -> str:
     def repl(m: re.Match) -> str:
         alt, url = m.group(1), m.group(2)
-        if url.startswith(("http://", "https://", "data:")):
-            return m.group(0)
+        if url.startswith(("http://", "https://", "data:", "doc:")):
+            return m.group(0)  # keep absolute / MinerU-locator URLs verbatim
         name = Path(urllib.parse.unquote(url)).name          # flatten to basename
         rel = "images/" + urllib.parse.quote(name)           # encode spaces etc.
         return f"![{alt}]({rel})"

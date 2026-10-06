@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 import shutil
 import subprocess
 import sys
@@ -91,8 +92,11 @@ def run_mineru(
         out_dir.mkdir(parents=True, exist_ok=True)
         # MinerU v4 CLI: mineru parse <file> -o <output_path> --tier <tier>
         # -o receives the output *file* path (markdown); images land alongside it.
+        # --pages all overrides the default limit of 10 pages so full documents
+        # are always parsed.
         out_md = out_dir / f"{pdf_path.stem}.md"
-        cmd = [exe, "parse", str(pdf_path), "-o", str(out_md), "--tier", tier, "--force"]
+        cmd = [exe, "parse", str(pdf_path), "-o", str(out_md),
+               "--tier", tier, "--pages", "all", "--force"]
         if extra_args:
             cmd += extra_args.split()
         logger.info("running: %s", " ".join(cmd))
@@ -121,6 +125,7 @@ def run_mineru(
     source_md = work_dir / "source.md"
     shutil.copyfile(md_path, source_md)
 
+    # MinerU v4 may produce real image files alongside the markdown.
     images_src = _find_images_dir(out_dir)
     if images_src:
         images_dst = work_dir / "images"
@@ -128,7 +133,83 @@ def run_mineru(
             shutil.rmtree(images_dst)
         shutil.copytree(images_src, images_dst)
 
+    # MinerU v4 local-server mode embeds images as doc: locator URLs instead
+    # of file paths.  Resolve them via the doclib API and rewrite source.md.
+    md_text = source_md.read_text(encoding="utf-8")
+    md_text = extract_doc_images(md_text, work_dir)
+    source_md.write_text(md_text, encoding="utf-8")
+
     return source_md
+
+
+# ---------------------------------------------------------------------------
+# MinerU v4 doc: locator → real image file
+# ---------------------------------------------------------------------------
+_DOC_LOCATOR_RE = re.compile(
+    r"(!\[([^\]]*)\])\((doc:[^)\s]+)\)"
+)
+
+
+def extract_doc_images(md_text: str, work_dir: Path) -> str:
+    """Replace doc: locator URLs with relative images/<name>.jpg paths.
+
+    MinerU v4 running through its local server embeds image blocks as stable
+    content locators (``doc:HASH/tier:TIER/page:N/block:M``) rather than
+    writing physical files.  This function calls the doclib API to render each
+    unique locator as a JPEG, copies the result into *work_dir/images/*, and
+    rewrites the markdown so downstream tools can find the files.
+    """
+    locators: list[tuple[str, str]] = []  # (locator, alt_text)
+    for m in _DOC_LOCATOR_RE.finditer(md_text):
+        locators.append((m.group(3), m.group(2)))
+
+    if not locators:
+        return md_text
+
+    try:
+        from mineru.doclib import DoclibClient  # type: ignore
+    except ImportError:
+        logger.warning("mineru.doclib not available; doc: image locators kept as-is")
+        return md_text
+
+    images_dir = work_dir / "images"
+    images_dir.mkdir(parents=True, exist_ok=True)
+
+    client = DoclibClient()
+    locator_to_relpath: dict[str, str] = {}
+
+    seen: set[str] = set()
+    for locator, _alt in locators:
+        if locator in seen:
+            continue
+        seen.add(locator)
+        try:
+            resp = client.read_content(locator, format="image", image_format="jpeg")
+            if resp.asset and resp.asset.path:
+                src = Path(resp.asset.path)
+                # Use a sanitised filename derived from the locator.
+                safe_name = re.sub(r"[^\w.\-]", "_", locator.replace("doc:", "")) + ".jpg"
+                dst = images_dir / safe_name
+                shutil.copy2(src, dst)
+                locator_to_relpath[locator] = f"images/{safe_name}"
+                logger.info("extracted image: %s → %s", locator, dst.name)
+            else:
+                logger.warning("no asset returned for locator %s", locator)
+        except Exception as exc:
+            logger.warning("failed to extract image %s: %s", locator, exc)
+
+    if not locator_to_relpath:
+        return md_text
+
+    def _repl(m: re.Match) -> str:
+        locator = m.group(3)
+        alt = m.group(2)
+        rel = locator_to_relpath.get(locator)
+        if rel:
+            return f"![{alt}]({rel})"
+        return m.group(0)  # keep original if extraction failed
+
+    return _DOC_LOCATOR_RE.sub(_repl, md_text)
 
 
 def main(argv: list[str] | None = None) -> int:
