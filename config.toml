@@ -18,7 +18,7 @@ backend_born_digital = "standard"
 backend_scanned = "standard"
 backend_fallback = ""                # leave empty; standard is already high quality
 extra_args = "--wait 600"
-restart_server = true               # stop+start local server before each parse run
+restart_server = false               # stop+start local server before each parse run
 
 [llm]
 # Google Gemini — see https://ai.google.dev/gemini-api/docs/models
