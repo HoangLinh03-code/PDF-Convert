@@ -11,21 +11,23 @@ born_digital_ratio_threshold = 0.1
 
 [mineru]
 # MinerU v4 uses "tiers" instead of backends: flash | basic | standard | advanced
-# Legacy names (pipeline, vlm-transformers, hybrid) are automatically mapped to "flash".
-# Local server supports: flash (CPU-based)
-# Remote service: basic/standard/advanced (requires --remote + mineru.net account)
-backend_born_digital = "pipeline"
-backend_scanned = "pipeline"
-backend_fallback = "standard"        # e.g. "standard" for remote higher-quality parse
-extra_args = ""
+# flash   = local CPU server (fast, renders formulas as images)
+# standard/advanced = remote mineru.net API (slower, preserves LaTeX $$..$$ text)
+# GPU acceleration: handled server-side for standard/advanced; not applicable for flash.
+backend_born_digital = "standard"
+backend_scanned = "standard"
+backend_fallback = ""                # leave empty; standard is already high quality
+extra_args = "--wait 600"
+restart_server = true               # stop+start local server before each parse run
 
 [llm]
 # Google Gemini — see https://ai.google.dev/gemini-api/docs/models
-# Available models: gemini-2.0-flash, gemini-2.5-flash, gemini-2.5-pro, ...
+# gemini-3.8-flash: latest recommended (replaces 2.5-flash for new users)
+# gemini-2.5-pro:   slower but most accurate for formula-heavy documents
 model = "gemini-3.5-flash-lite"
 temperature = 0.1
-qps = 4
-max_retries = 3
+qps = 2
+max_retries = 4
 
 [chunk]
 target_tokens = 1500

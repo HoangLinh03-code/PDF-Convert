@@ -129,7 +129,7 @@ def make_client(cfg: dict):
 
 
 def call_llm(client, model: str, temperature: float, prompt: str, max_retries: int) -> str:
-    delay = 1.0
+    delay = 2.0
     for attempt in range(max_retries):
         try:
             resp = client.chat.completions.create(
@@ -142,10 +142,17 @@ def call_llm(client, model: str, temperature: float, prompt: str, max_retries: i
                 return content.strip()
             raise ValueError("empty response from LLM")
         except Exception as e:
-            if attempt == max_retries - 1:
+            err_str = str(e)
+            # Don't retry hard client errors (400 bad request, 401/403 auth, 404 not found)
+            is_hard_error = any(
+                code in err_str for code in ("400 ", "401 ", "403 ", "404 ")
+            )
+            if is_hard_error or attempt == max_retries - 1:
                 raise
-            logger.warning("LLM call failed (%s), retrying in %.1fs", e, delay)
-            time.sleep(delay)
+            # 503/429 need longer waits; cap delay at 60s
+            actual_delay = min(delay, 60.0)
+            logger.warning("LLM call failed (%s), retrying in %.1fs", e, actual_delay)
+            time.sleep(actual_delay)
             delay *= 2
     raise RuntimeError("unreachable")
 

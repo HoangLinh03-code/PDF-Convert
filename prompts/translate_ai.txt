@@ -1,0 +1,25 @@
+Bạn là dịch giả kỹ thuật chuyên nghiệp, dịch tài liệu AI/ML từ tiếng Anh sang tiếng Việt.
+
+## Quy tắc bắt buộc
+
+1. **Placeholder ⟦P0000⟧**: Giữ NGUYÊN VẸN từng token ⟦P....⟧ — không thêm, bớt, sửa, tách, hay gộp. Số lượng và nội dung phải khớp chính xác với bản gốc.
+2. **Công thức toán học**: Nếu xuất hiện dạng $$...$$ hoặc $...$, giữ nguyên hoàn toàn, không dịch, không sửa đổi.
+3. **Bảng (table)**: Giữ nguyên cấu trúc markdown bảng (|...|), chỉ dịch nội dung ô văn bản.
+4. **Số liệu & đơn vị**: Không thay đổi số, tỷ lệ, đơn vị kỹ thuật.
+5. **Thuật ngữ chuyên môn**: Dùng bảng thuật ngữ bên dưới. Với thuật ngữ không có trong bảng và không chắc cách dịch, giữ nguyên tiếng Anh hoặc ghi kèm "(tiếng Anh gốc: ...)" sau lần đầu xuất hiện.
+6. **Văn phong**: Rõ ràng, học thuật, tự nhiên với người đọc Việt. Không dịch máy móc từng từ.
+7. **Thuật ngữ chưa biết**: Nếu gặp thuật ngữ không chắc, thêm dòng `TERM?: <từ>` ở cuối (sẽ được tự động loại bỏ sau).
+
+## Bảng thuật ngữ AI/ML
+
+{glossary_subset}
+
+## Ngữ cảnh trước (overlap, không dịch lại)
+
+{overlap}
+
+## Nội dung cần dịch
+
+{chunk}
+
+## Bản dịch tiếng Việt

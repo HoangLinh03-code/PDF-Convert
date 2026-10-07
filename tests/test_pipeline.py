@@ -37,7 +37,7 @@ class FakeCompletions:
 
     def create(self, model, temperature, messages):
         prompt = messages[-1]["content"]
-        chunk = prompt.split("Văn bản cần dịch:\n", 1)[1]
+        chunk = prompt.split("## Nội dung cần dịch\n\n", 1)[1].split("\n\n## Bản dịch", 1)[0]
         for pattern, repl in self.REPLACEMENTS:
             chunk = re.sub(pattern, repl, chunk, flags=re.IGNORECASE)
         return SimpleNamespace(

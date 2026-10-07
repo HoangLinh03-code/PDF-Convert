@@ -61,6 +61,25 @@ def _ensure_server(exe: str) -> None:
     logger.warning("MinerU server start returned code %d: %s", check.returncode, output)
 
 
+def _restart_server(exe: str) -> None:
+    """Stop then start the MinerU local server to free resources before a new parse."""
+    logger.info("Restarting MinerU server...")
+    subprocess.run(
+        [exe, "server", "stop"],
+        capture_output=True,
+        text=True,
+    )
+    time.sleep(2)  # give the server time to shut down
+    start = subprocess.run(
+        [exe, "server", "start"],
+        capture_output=True,
+        text=True,
+    )
+    output = (start.stdout + start.stderr).strip()
+    logger.info("MinerU server (re)started: %s", output or "ok")
+    time.sleep(2)  # brief pause for the server to be ready
+
+
 def _find_images_dir(out_root: Path) -> Path | None:
     for d in sorted(out_root.rglob("images")):
         if d.is_dir() and any(d.iterdir()):
@@ -74,6 +93,7 @@ def run_mineru(
     backend: str,
     fallback_backend: str | None = None,
     extra_args: str = "",
+    restart_server: bool = False,
 ) -> Path:
     pdf_path = Path(pdf_path)
     work_dir = Path(work_dir)
@@ -81,19 +101,26 @@ def run_mineru(
     log_path = work_dir / "mineru.log"
 
     exe = _mineru_exe()
-    _ensure_server(exe)
+    if restart_server:
+        _restart_server(exe)
+    else:
+        _ensure_server(exe)
     backends = [backend] + ([fallback_backend] if fallback_backend else [])
     md_path: Path | None = None
     out_dir: Path | None = None
 
     for b in backends:
         tier = _BACKEND_TO_TIER.get(b, "standard")
+        _ensure_server(exe)
+
         out_dir = work_dir / f"mineru-{b}"
         out_dir.mkdir(parents=True, exist_ok=True)
         # MinerU v4 CLI: mineru parse <file> -o <output_path> --tier <tier>
         # -o receives the output *file* path (markdown); images land alongside it.
         # --pages all overrides the default limit of 10 pages so full documents
         # are always parsed.
+        # The local managed server supports flash/standard/advanced natively;
+        # --remote is NOT needed (and breaks things by calling mineru.net instead).
         out_md = out_dir / f"{pdf_path.stem}.md"
         cmd = [exe, "parse", str(pdf_path), "-o", str(out_md),
                "--tier", tier, "--pages", "all", "--force"]

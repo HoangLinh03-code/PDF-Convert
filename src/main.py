@@ -66,6 +66,7 @@ def process_pdf(pdf_path: Path, cfg: dict, args: argparse.Namespace) -> dict:
         backend,
         cfg["mineru"].get("backend_fallback") or None,
         cfg["mineru"].get("extra_args", ""),
+        restart_server=cfg["mineru"].get("restart_server", False),
     )
     durations["mineru"] = time.monotonic() - t0
 

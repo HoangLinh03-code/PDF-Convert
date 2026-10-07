@@ -10,9 +10,12 @@ PLACEHOLDER_RE = re.compile(r"⟦P\d{4}⟧")
 
 # Order matters: earlier patterns win over later ones.
 _PATTERNS: list[re.Pattern] = [
-    re.compile(r"!\[[^\]]*\]\([^)]*\)"),          # image links
+    # MinerU flash renders formulas as images with predictable alt-text.
+    # Protect these FIRST so they are not mixed with regular images.
+    re.compile(r"!\[Formula block\]\([^)]*\)"),
+    re.compile(r"!\[[^\]]*\]\([^)]*\)"),          # image links (general)
     re.compile(r"```.*?```", re.DOTALL),           # fenced code
-    re.compile(r"\$\$.*?\$\$", re.DOTALL),         # display math
+    re.compile(r"\$\$.*?\$\$", re.DOTALL),         # display math ($$)
     re.compile(r"</?[a-zA-Z][^>]*>"),              # HTML tags (tables etc.)
     re.compile(r"https?://[^\s)\]]+"),             # URLs (incl. inside md links)
     re.compile(r"`[^`\n]+`"),                      # inline code
